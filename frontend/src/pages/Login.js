@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import {
   Box,
   Button,
@@ -12,17 +14,38 @@ import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import axios from "axios";
 
 export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    console.log(email, password);
-  };
+
+
+
+const handleLogin = async (e) => {
+  e.preventDefault();
+
+  try {
+    const res = await axios.post("http://localhost:5000/api/auth/login", {
+      email,
+      password
+    });
+
+    // save token
+    localStorage.setItem("token", res.data.token);
+
+    alert("Login Successful!");
+    console.log(res.data);
+
+  } catch (err) {
+    alert(err.response?.data?.msg || "Login failed");
+  }
+};
+
 
   return (
     <Box
@@ -110,9 +133,14 @@ export default function Login() {
 
         <Typography align="center" mt={2}>
           Don't have an account?{" "}
-          <span style={{ color: "#ff9800", cursor: "pointer" }}>
-            Register
-          </span>
+          <span
+  style={{ color: "#ff9800", cursor: "pointer" }}
+  onClick={() => navigate("/register")}
+>
+  Register
+</span>
+
+
         </Typography>
       </Paper>
     </Box>
