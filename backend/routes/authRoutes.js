@@ -7,41 +7,61 @@ const User = require("../models/User");
 const SECRET = "foodwagon_secret_key";
 
 
+// ================= REGISTER =================
 router.post("/register", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { name, email, password } = req.body;
 
-    // check existing user
-    let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: "User already exists" });
+  
+    if (!name || !email || !password) {
+      return res.status(400).json({ msg: "All fields are required" });
+    }
 
-    // hash password
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ msg: "User already exists" });
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    user = new User({ email, password: hashedPassword });
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
     await user.save();
 
-    res.json({ msg: "User registered successfully" });
+    // 5️⃣ Send success response
+    res.status(201).json({
+      msg: "User registered successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email
+      }
+    });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Register Error:", err);
+    res.status(500).json({ msg: "Server error" });
   }
 });
 
+
+// ================= LOGIN =================
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // find user
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ msg: "Invalid email" });
 
-    // compare password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
 
-    // create token
     const token = jwt.sign(
       { id: user._id },
       SECRET,
@@ -52,6 +72,7 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user._id,
+        name: user.name,  // 👈 added name
         email: user.email
       }
     });
@@ -61,6 +82,4 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 module.exports = router;
-

@@ -32,12 +32,21 @@ export default function Register() {
 
     try {
       const res = await axios.post("http://localhost:5000/api/auth/register", {
+        name,
         email,
         password
       });
 
       alert("Account created successfully!");
       console.log(res.data);
+
+       // Optional: clear form
+      setName("");
+      setEmail("");
+      setPassword("");
+
+      // Optional: redirect to login
+      navigate("/login");
 
     } catch (err) {
       alert(err.response?.data?.msg || "Registration failed");

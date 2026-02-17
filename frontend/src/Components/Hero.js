@@ -22,7 +22,7 @@ export default function Hero() {
 
         <Box sx={{ display: "flex", gap: 2 }}>
           <TextField
-            placeholder="Enter your address"
+            placeholder="Search"
             sx={{ background: "white", borderRadius: 1 }}
           />
           <Button variant="contained" color="warning">

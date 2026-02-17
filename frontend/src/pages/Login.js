@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import LockIcon from "@mui/icons-material/Lock";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
+
 
 export default function Login() {
 
@@ -37,9 +39,20 @@ const handleLogin = async (e) => {
 
     // save token
     localStorage.setItem("token", res.data.token);
+  
+    localStorage.setItem("user", JSON.stringify(res.data.user)); 
 
     alert("Login Successful!");
     console.log(res.data);
+
+    setPassword("");
+    setEmail("");
+
+    navigate("/");
+
+
+
+
 
   } catch (err) {
     alert(err.response?.data?.msg || "Login failed");
