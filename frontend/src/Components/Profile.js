@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { TextField } from "@mui/material";
+
 
 import {
   Box,
@@ -24,7 +26,7 @@ function Profile() {
   { text: "My Addresses", key: "addresses", icon: <LocationOnOutlinedIcon /> },
   { text: "My Orders", key: "orders", icon: <ShoppingBagOutlinedIcon /> },
   { text: "Payments", key: "payments", icon: <PaymentOutlinedIcon /> },
-  { text: "Account Privacy", key: "account", icon: <LockOutlinedIcon /> },
+  { text: "Account ", key: "account", icon: <LockOutlinedIcon /> },
   { text: "Logout", key: "logout", icon: <LogoutOutlinedIcon /> }
 ];
 
@@ -32,6 +34,24 @@ function Profile() {
    const user = JSON.parse(localStorage.getItem("user"));
    const userName = user?.name || "Guest User";
    const [selectedSection, setSelectedSection] = useState("addresses");
+   const [isEditing, setIsEditing] = useState(false);
+  const [accountData, setAccountData] = useState({
+  name: user?.name || "",
+  email: user?.email || ""
+  });
+
+const handleChange = (e) => {
+  const { name, value } = e.target;
+  setAccountData((prev) => ({
+    ...prev,
+    [name]: value
+  }));
+};
+
+const handleSave = () => {
+  localStorage.setItem("user", JSON.stringify(accountData));
+  setIsEditing(false);
+};
 
 
   return (
@@ -173,20 +193,64 @@ function Profile() {
   )}
 
   {selectedSection === "account" && (
-    <Box>
-      <Typography variant="h6" fontWeight="600" gutterBottom>
-        Account Details
-      </Typography>
+  <Box maxWidth={400}>
+    <Typography variant="h6" fontWeight="600" gutterBottom>
+      Account Details
+    </Typography>
 
-      <Typography fontSize={14}>
-        <strong>Name:</strong> {userName}
-      </Typography>
+    {isEditing ? (
+      <>
+        <TextField
+          fullWidth
+          label="Name"
+          name="name"
+          value={accountData.name}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        />
 
-      <Typography fontSize={14}>
-        <strong>Email:</strong> {user?.email}
-      </Typography>
-    </Box>
-  )}
+        <TextField
+          fullWidth
+          label="Email"
+          name="email"
+          value={accountData.email}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        />
+
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          sx={{
+            backgroundColor: "#ff9800",
+            textTransform: "none"
+          }}
+        >
+          Save Changes
+        </Button>
+      </>
+    ) : (
+      <>
+        <Typography fontSize={14} sx={{ mb: 1 }}>
+          <strong>Name:</strong> {accountData.name}
+        </Typography>
+
+        <Typography fontSize={14} sx={{ mb: 2 }}>
+          <strong>Email:</strong> {accountData.email}
+        </Typography>
+
+        <Button
+          variant="outlined"
+          onClick={() => setIsEditing(true)}
+          sx={{ textTransform: "none" }}
+        >
+          Edit Profile
+        </Button>
+      </>
+    )}
+  </Box>
+)}
+
 </Box>
 
       </Paper>
