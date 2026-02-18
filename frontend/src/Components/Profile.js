@@ -37,8 +37,11 @@ function Profile() {
    const [isEditing, setIsEditing] = useState(false);
   const [accountData, setAccountData] = useState({
   name: user?.name || "",
-  email: user?.email || ""
-  });
+  email: user?.email || "",
+  phone: user?.phone || "",
+  address: user?.address || ""
+});
+
 
 const handleChange = (e) => {
   const { name, value } = e.target;
@@ -193,7 +196,7 @@ const handleSave = () => {
   )}
 
   {selectedSection === "account" && (
-  <Box maxWidth={400}>
+  <Box maxWidth={500}>
     <Typography variant="h6" fontWeight="600" gutterBottom>
       Account Details
     </Typography>
@@ -202,7 +205,7 @@ const handleSave = () => {
       <>
         <TextField
           fullWidth
-          label="Name"
+          label="Full Name"
           name="name"
           value={accountData.name}
           onChange={handleChange}
@@ -214,6 +217,26 @@ const handleSave = () => {
           label="Email"
           name="email"
           value={accountData.email}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        />
+
+        <TextField
+          fullWidth
+          label="Phone Number"
+          name="phone"
+          value={accountData.phone}
+          onChange={handleChange}
+          sx={{ mb: 2 }}
+        />
+
+        <TextField
+          fullWidth
+          multiline
+          rows={3}
+          label="Address"
+          name="address"
+          value={accountData.address}
           onChange={handleChange}
           sx={{ mb: 2 }}
         />
@@ -231,12 +254,20 @@ const handleSave = () => {
       </>
     ) : (
       <>
-        <Typography fontSize={14} sx={{ mb: 1 }}>
+        <Typography sx={{ mb: 1 }}>
           <strong>Name:</strong> {accountData.name}
         </Typography>
 
-        <Typography fontSize={14} sx={{ mb: 2 }}>
+        <Typography sx={{ mb: 1 }}>
           <strong>Email:</strong> {accountData.email}
+        </Typography>
+
+        <Typography sx={{ mb: 1 }}>
+          <strong>Phone:</strong> {accountData.phone || "Not added"}
+        </Typography>
+
+        <Typography sx={{ mb: 2 }}>
+          <strong>Address:</strong> {accountData.address || "Not added"}
         </Typography>
 
         <Button
@@ -250,6 +281,7 @@ const handleSave = () => {
     )}
   </Box>
 )}
+
 
 </Box>
 
