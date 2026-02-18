@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+
 import {
   Box,
   Paper,
@@ -13,25 +14,28 @@ import {
 
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import CardGiftcardOutlinedIcon from "@mui/icons-material/CardGiftcardOutlined";
+import PaymentOutlinedIcon from '@mui/icons-material/PaymentOutlined'
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
 
 function Profile() {
-  const menuItems = [
-    { text: "My Addresses", icon: <LocationOnOutlinedIcon />, active: true },
-    { text: "My Orders", icon: <ShoppingBagOutlinedIcon /> },
-    { text: "My Prescriptions", icon: <DescriptionOutlinedIcon /> },
-    { text: "E-Gift Cards", icon: <CardGiftcardOutlinedIcon /> },
-    { text: "Account privacy", icon: <LockOutlinedIcon /> },
-    { text: "Logout", icon: <LogoutOutlinedIcon /> }
-  ];
+ const menuItems = [
+  { text: "My Addresses", key: "addresses", icon: <LocationOnOutlinedIcon /> },
+  { text: "My Orders", key: "orders", icon: <ShoppingBagOutlinedIcon /> },
+  { text: "Payments", key: "payments", icon: <PaymentOutlinedIcon /> },
+  { text: "Account Privacy", key: "account", icon: <LockOutlinedIcon /> },
+  { text: "Logout", key: "logout", icon: <LogoutOutlinedIcon /> }
+];
+
+
    const user = JSON.parse(localStorage.getItem("user"));
    const userName = user?.name || "Guest User";
+   const [selectedSection, setSelectedSection] = useState("addresses");
+
 
   return (
+    
     <Box
       sx={{
         minHeight: "100vh",
@@ -80,13 +84,16 @@ function Profile() {
             {menuItems.map((item, index) => (
               <React.Fragment key={index}>
                 <ListItemButton
-                  sx={{
-                    py: 1.6,
-                    px: 2,
-                    backgroundColor: item.active ? "#eeeeee" : "transparent",
-                    "&:hover": { backgroundColor: "#f0f0f0" }
-                  }}
-                >
+                      onClick={() => setSelectedSection(item.key)}
+                      sx={{
+                        py: 1.6,
+                        px: 2,
+                        backgroundColor:
+                          selectedSection === item.key ? "#eeeeee" : "transparent",
+                        "&:hover": { backgroundColor: "#f0f0f0" }
+                      }}
+                    >
+
                   <ListItemIcon sx={{ minWidth: 36, color: "#666" }}>
                     {item.icon}
                   </ListItemIcon>
@@ -106,55 +113,82 @@ function Profile() {
 
         {/* Right Panel */}
         <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            flexDirection: "column",
-            textAlign: "center",
-            p: 4
-          }}
-        >
-          {/* Illustration */}
-          <Box
-            component="img"
-            src="https://cdn-icons-png.flaticon.com/512/4076/4076478.png"
-            alt="No address"
-            sx={{
-              width: 160,
-              mb: 3,
-              opacity: 0.9
-            }}
-          />
+  sx={{
+    flex: 1,
+    p: 4
+  }}
+>
+  {selectedSection === "addresses" && (
+    <Box textAlign="center">
+      <Typography variant="h6" fontWeight="600" gutterBottom>
+        You have no saved addresses
+      </Typography>
 
-          <Typography variant="h6" fontWeight="600" gutterBottom>
-            You have no saved addresses
-          </Typography>
+      <Typography sx={{ color: "#777", mb: 3, fontSize: 14 }}>
+        Tell us where you want your orders delivered
+      </Typography>
 
-          <Typography
-            sx={{ color: "#777", mb: 3, fontSize: 14 }}
-          >
-            Tell us where you want your orders delivered
-          </Typography>
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "#ff9800",
+          textTransform: "none"
+        }}
+      >
+        Add New Address
+      </Button>
+    </Box>
+  )}
 
-          <Button
-            variant="contained"
-            sx={{
-              backgroundColor: "#ff9800",
-              px: 4,
-              py: 1.2,
-              textTransform: "none",
-              fontWeight: 500,
-              borderRadius: 1,
-              "&:hover": {
-                backgroundColor: "#ff9800"
-              }
-            }}
-          >
-            Add New Address
-          </Button>
-        </Box>
+  {selectedSection === "orders" && (
+    <Box textAlign="center">
+      <Typography variant="h6" fontWeight="600">
+        No Orders Yet
+      </Typography>
+      <Typography sx={{ color: "#777", mt: 1 }}>
+        Looks like you haven’t placed any orders.
+      </Typography>
+    </Box>
+  )}
+
+  {selectedSection === "payments" && (
+    <Box textAlign="center">
+      <Typography variant="h6" fontWeight="600">
+        Saved Payment Methods
+      </Typography>
+      <Typography sx={{ color: "#777", mt: 1 }}>
+        You have no saved payment methods.
+      </Typography>
+      <Button
+        variant="contained"
+        sx={{
+          mt: 2,
+          backgroundColor: "#ff9800",
+          textTransform: "none"
+        }}
+      >
+        Add Payment Method
+      </Button>
+    </Box>
+  )}
+
+  {selectedSection === "account" && (
+    <Box>
+      <Typography variant="h6" fontWeight="600" gutterBottom>
+        Account Details
+      </Typography>
+
+      <Typography fontSize={14}>
+        <strong>Name:</strong> {userName}
+      </Typography>
+
+      <Typography fontSize={14}>
+        <strong>Email:</strong> {user?.email}
+      </Typography>
+    </Box>
+  )}
+</Box>
+
       </Paper>
     </Box>
   );
