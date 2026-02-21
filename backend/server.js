@@ -25,7 +25,7 @@ app.get("/api/items", (req, res) => {
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/recommend", require("./routes/recommendRoutes"));
-app.use("/api/user", require("./routes/userRoutes"));
+
 
 app.listen(5000, () => {
   console.log("Server running on port 5000");
