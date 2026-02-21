@@ -34,10 +34,36 @@ function AccountDetails({
             sx={{ mb: 2 }}
           />
 
+          {/* ✅ Phone Number */}
+          <TextField
+            fullWidth
+            label="Phone Number"
+            name="phone"
+            value={accountData.phone || ""}
+            onChange={handleAccountChange}
+            sx={{ mb: 2 }}
+          />
+
+          {/* ✅ Address */}
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="Address"
+            name="address"
+            value={accountData.address || ""}
+            onChange={handleAccountChange}
+            sx={{ mb: 2 }}
+          />
+
           <Button
             variant="contained"
             onClick={handleSaveAccount}
-            sx={{ backgroundColor: "#ff9800", textTransform: "none", mr: 1 }}
+            sx={{
+              backgroundColor: "#ff9800",
+              textTransform: "none",
+              mr: 1
+            }}
           >
             Save Changes
           </Button>
@@ -54,8 +80,21 @@ function AccountDetails({
           <Typography sx={{ mb: 1 }}>
             <strong>Name:</strong> {accountData.name}
           </Typography>
-          <Typography sx={{ mb: 3 }}>
+
+          <Typography sx={{ mb: 1 }}>
             <strong>Email:</strong> {accountData.email}
+          </Typography>
+
+          {/* ✅ Show Phone */}
+          <Typography sx={{ mb: 1 }}>
+            <strong>Phone:</strong>{" "}
+            {accountData.phone ? accountData.phone : "Not added"}
+          </Typography>
+
+          {/* ✅ Show Address */}
+          <Typography sx={{ mb: 3 }}>
+            <strong>Address:</strong>{" "}
+            {accountData.address ? accountData.address : "Not added"}
           </Typography>
 
           <Button
