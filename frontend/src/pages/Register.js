@@ -19,31 +19,36 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import axios from "axios";
 
 export default function Register() {
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user"); // 👈 NEW
+  const [role, setRole] = useState("user");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
+    if (password.length < 6) {
+      return alert("Password must be at least 6 characters");
+    }
+
     try {
+      setLoading(true);
+
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
         {
           name,
           email,
           password,
-          role 
+          role
         }
       );
 
       alert("Account created successfully!");
-      console.log(res.data);
 
       setName("");
       setEmail("");
@@ -54,6 +59,8 @@ export default function Register() {
 
     } catch (err) {
       alert(err.response?.data?.msg || "Registration failed");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -76,14 +83,15 @@ export default function Register() {
           Join FoodWagon 🍔
         </Typography>
 
-        <form onSubmit={handleRegister}>
-
+        <form onSubmit={handleRegister} autoComplete="off">
+          {/* Name */}
           <TextField
             fullWidth
             label="Full Name"
             margin="normal"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -91,15 +99,17 @@ export default function Register() {
                 </InputAdornment>
               )
             }}
-            required
           />
 
+          {/* Email */}
           <TextField
             fullWidth
+            type="email"
             label="Email"
             margin="normal"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -107,9 +117,9 @@ export default function Register() {
                 </InputAdornment>
               )
             }}
-            required
           />
 
+          {/* Password */}
           <TextField
             fullWidth
             label="Password"
@@ -117,6 +127,7 @@ export default function Register() {
             margin="normal"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -126,17 +137,17 @@ export default function Register() {
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    edge="end"
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               )
             }}
-            required
           />
 
-          {/*  ROLE DROPDOWN */}
+          {/* Role */}
           <TextField
             select
             fullWidth
@@ -147,20 +158,21 @@ export default function Register() {
           >
             <MenuItem value="user">User</MenuItem>
             <MenuItem value="restaurant">Restaurant</MenuItem>
-       
           </TextField>
 
+          {/* Button */}
           <Button
             type="submit"
             variant="contained"
             fullWidth
+            disabled={loading}
             sx={{
               mt: 3,
               backgroundColor: "#ff9800",
               ":hover": { backgroundColor: "#fb8c00" }
             }}
           >
-            Register
+            {loading ? "Registering..." : "Register"}
           </Button>
         </form>
 

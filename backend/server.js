@@ -4,6 +4,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const restaurantRoutes = require("./routes/restaurantRoutes");
 const cors = require("cors");
 
+
 const app = express();
 
 app.use(cors());

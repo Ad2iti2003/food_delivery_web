@@ -1,3 +1,9 @@
-export default function AdminDashboard() {
-  return <h2>Admin Dashboard</h2>;
+import React from 'react'
+
+function AdminDashboard() {
+  return (
+    <div>AdminDashboard</div>
+  )
 }
+
+export default AdminDashboard
