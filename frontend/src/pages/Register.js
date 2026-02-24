@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   Box,
   Button,
@@ -8,7 +7,8 @@ import {
   Typography,
   Paper,
   InputAdornment,
-  IconButton
+  IconButton,
+  MenuItem
 } from "@mui/material";
 
 import EmailIcon from "@mui/icons-material/Email";
@@ -23,29 +23,33 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("user"); // 👈 NEW
   const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await axios.post("http://localhost:5000/api/auth/register", {
-        name,
-        email,
-        password
-      });
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        {
+          name,
+          email,
+          password,
+          role 
+        }
+      );
 
       alert("Account created successfully!");
       console.log(res.data);
 
-       // Optional: clear form
       setName("");
       setEmail("");
       setPassword("");
+      setRole("user");
 
-      // Optional: redirect to login
       navigate("/login");
 
     } catch (err) {
@@ -63,14 +67,7 @@ export default function Register() {
         background: "linear-gradient(to right, #fff3e0, #ffe0b2)"
       }}
     >
-      <Paper
-        elevation={6}
-        sx={{
-          padding: 4,
-          width: 380,
-          borderRadius: 3
-        }}
-      >
+      <Paper elevation={6} sx={{ padding: 4, width: 380, borderRadius: 3 }}>
         <Typography variant="h4" align="center" fontWeight="bold">
           Create Account
         </Typography>
@@ -139,6 +136,20 @@ export default function Register() {
             required
           />
 
+          {/*  ROLE DROPDOWN */}
+          <TextField
+            select
+            fullWidth
+            label="Register As"
+            margin="normal"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <MenuItem value="user">User</MenuItem>
+            <MenuItem value="restaurant">Restaurant</MenuItem>
+       
+          </TextField>
+
           <Button
             type="submit"
             variant="contained"
@@ -156,12 +167,11 @@ export default function Register() {
         <Typography align="center" mt={2}>
           Already have an account?{" "}
           <span
-  style={{ color: "#ff9800", cursor: "pointer" }}
-  onClick={() => navigate("/login")}
->
-  Login
-</span>
-
+            style={{ color: "#ff9800", cursor: "pointer" }}
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </span>
         </Typography>
       </Paper>
     </Box>

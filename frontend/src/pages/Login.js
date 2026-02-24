@@ -48,7 +48,12 @@ const handleLogin = async (e) => {
     setPassword("");
     setEmail("");
 
-    navigate("/");
+
+   const user = res.data.user;
+
+// Navigate based on role 
+
+  navigate(user.role === "restaurant" ? "/restaurant" : "/");
 
 
 

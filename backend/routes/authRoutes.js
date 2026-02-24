@@ -10,37 +10,44 @@ const SECRET = "foodwagon_secret_key";
 // ================= REGISTER =================
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-  
+    //  Validation
     if (!name || !email || !password) {
       return res.status(400).json({ msg: "All fields are required" });
     }
 
-
+    //  Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ msg: "User already exists" });
     }
 
+    //  Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    //  Prevent fake admin creation
+    const safeRole =
+      role === "restaurant" ? "restaurant" : "user";
+
+    //  Create user
     const user = new User({
       name,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      role: safeRole
     });
 
     await user.save();
 
-    // 5️⃣ Send success response
     res.status(201).json({
       msg: "User registered successfully",
       user: {
         id: user._id,
         name: user.name,
-        email: user.email
+        email: user.email,
+        role: user.role  
       }
     });
 
@@ -62,8 +69,9 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid password" });
 
+
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       SECRET,
       { expiresIn: "1d" }
     );
@@ -72,8 +80,9 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user._id,
-        name: user.name,  // 👈 added name
-        email: user.email
+        name: user.name,
+        email: user.email,
+        role: user.role 
       }
     });
 
