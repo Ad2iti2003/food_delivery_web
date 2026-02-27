@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const adminRoutes = require("./routes/adminRoutes");
-const restaurantRoutes = require("./routes/restaurantRoutes");
+
 const cors = require("cors");
 
 
@@ -28,9 +28,9 @@ app.get("/api/items", (req, res) => {
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/recommend", require("./routes/recommendRoutes"));
-
+app.use("/api/menu", require("./routes/menuRoutes"));
 app.use("/api/admin", adminRoutes);
-app.use("/api/restaurant", restaurantRoutes);
+
 
 
 app.listen(5000, () => {

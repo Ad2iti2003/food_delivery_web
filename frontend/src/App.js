@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./Components/Profile";
+import MenuPage from "./pages/Menu";
 
 import RestaurantDashboard from "./pages/RestaurantDashboard";
 import RestaurantMenu from "./pages/RestaurantMenu";
@@ -21,6 +22,9 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+
+        <Route path="/menu" element={<MenuPage />} />
 
         <Route
           path="/profile"
