@@ -12,6 +12,15 @@ import RestaurantOrders from "./pages/RestaurantOrders";
 import RestaurantProfile from "./pages/RestaurantProfile";
 
 import ProtectedRoute from "./Components/ProtectedRoute";
+import Cart from "./pages/Cart"; 
+import MyOrders from "./pages/MyOrders";
+import AdminDashboard from "./pages/AdminDashboard"; // already imported
+
+
+
+
+
+
 
 export default function App() {
   return (
@@ -20,9 +29,14 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/cart" element={<Cart />} />   
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+        <Route path="/my-orders" element={
+        <ProtectedRoute>
+        <MyOrders />
+        </ProtectedRoute>
+        } />
 
         <Route path="/menu" element={<MenuPage />} />
 
@@ -31,6 +45,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

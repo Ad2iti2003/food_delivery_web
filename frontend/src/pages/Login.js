@@ -42,6 +42,8 @@ const handleLogin = async (e) => {
   
     localStorage.setItem("user", JSON.stringify(res.data.user)); 
 
+    window.dispatchEvent(new Event("userUpdated")); 
+
     alert("Login Successful!");
     console.log(res.data);
 

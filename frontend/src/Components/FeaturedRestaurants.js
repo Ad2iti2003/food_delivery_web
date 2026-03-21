@@ -10,13 +10,16 @@ const restaurants = [
 export default function FeaturedRestaurants() {
 
   const settings = {
-    slidesToShow: 3,
-    autoplay: true,
-    responsive: [
-      { breakpoint: 900, settings: { slidesToShow: 2 } },
-      { breakpoint: 600, settings: { slidesToShow: 1 } }
-    ]
-  };
+  dots: true,        // ✅ added
+  infinite: true,    // ✅ added
+  slidesToShow: 3,
+  slidesToScroll: 1, // ✅ added
+  autoplay: true,
+  responsive: [
+    { breakpoint: 900, settings: { slidesToShow: 2 } },
+    { breakpoint: 600, settings: { slidesToShow: 1 } }
+  ]
+};
 
   return (
     <>

@@ -1,38 +1,40 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const adminRoutes = require("./routes/adminRoutes");
-
 const cors = require("cors");
-
+const mongoose = require("mongoose");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") }); // explicit path fix
 
 const app = express();
 
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB Connected");
+  } catch (err) {
+    console.error("MongoDB Connection Failed:", err.message);
+    process.exit(1);
+  }
+};
+
+connectDB();
+
 app.use(cors());
 app.use(express.json());
-
-const items = [
-  { id: 1, name: "Burger", price: 4 },
-  { id: 2, name: "Pizza", price: 6 },
-  { id: 3, name: "Sandwich", price: 3 },
-  { id: 2, name: "Pizza", price: 6 },
-  { id: 3, name: "Sandwich", price: 3 }
-];
-
-mongoose.connect("mongodb://127.0.0.1:27017/foodapp")
-.then(() => console.log("DB Connected"));
-
-app.get("/api/items", (req, res) => {
-  res.json(items);
-});
-
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/recommend", require("./routes/recommendRoutes"));
 app.use("/api/menu", require("./routes/menuRoutes"));
-app.use("/api/admin", adminRoutes);
+app.use("/api/restaurant", require("./routes/restaurantRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
+app.use("/api/recommend", require("./routes/recommendRoutes"));
+app.use("/api/user", require("./routes/userRoutes"));
+app.use("/api/orders", require("./routes/orderRoutes")); // ✅ this line is missing
 
 
-
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: err.message });
 });
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

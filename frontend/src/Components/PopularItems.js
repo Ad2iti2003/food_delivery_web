@@ -2,14 +2,14 @@ import Slider from "react-slick";
 import { Card, CardMedia, CardContent, Typography, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import { useCart } from "../Context/CartContext"; // ✅ add
 
 export default function PopularItems() {
+  const [items, setItems] = useState([]);
+  const { addToCart } = useCart(); // ✅ get addToCart
 
-    const [items, setItems] = useState([]);
-
-    useEffect(() => {
-    axios.get("http://localhost:5000/api/items")
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/menu")
       .then((res) => setItems(res.data))
       .catch((err) => console.error(err));
   }, []);
@@ -29,16 +29,27 @@ export default function PopularItems() {
   return (
     <>
       <h2 style={{ marginLeft: "40px" }}>Popular Items</h2>
-
       <Slider {...settings}>
         {items.map((item, i) => (
           <Card key={i} sx={{ mx: 1 }}>
-            <CardMedia image={item.img} sx={{ height: 200 }} />
+            <CardMedia
+              component="img"
+              image={
+                item.image
+                  ? `http://localhost:5000${item.image}`
+                  : "https://source.unsplash.com/400x300?food"
+              }
+              sx={{ height: 200, objectFit: "cover" }}
+            />
             <CardContent>
-              <Typography>{item.name}</Typography>
-              <Typography color="orange">{item.price}</Typography>
-              <Button fullWidth variant="contained" color="warning">
-                Order Now
+              <Typography fontWeight="bold">{item.name}</Typography>
+              <Typography color="orange">₹{item.price}</Typography>
+              <Button
+                fullWidth variant="contained" color="warning"
+                sx={{ mt: 1 }}
+                onClick={() => addToCart(item)} // ✅ add to cart
+              >
+                Add to Cart
               </Button>
             </CardContent>
           </Card>
@@ -47,4 +58,3 @@ export default function PopularItems() {
     </>
   );
 }
-

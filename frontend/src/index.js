@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from "react-router-dom";
 import App from './App';
+import { CartProvider } from "./Context/CartContext"; // ✅ add
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
-    <App />
+    <CartProvider>   {/* ✅ wrap */}
+      <App />
+    </CartProvider>
   </BrowserRouter>
 );

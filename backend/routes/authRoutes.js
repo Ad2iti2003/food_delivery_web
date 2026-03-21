@@ -4,7 +4,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-const SECRET = "foodwagon_secret_key";
+const SECRET = process.env.JWT_SECRET;
 
 
 // ================= REGISTER =================
