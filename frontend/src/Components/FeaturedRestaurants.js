@@ -3,28 +3,26 @@ import { Card, CardMedia, CardContent, Typography } from "@mui/material";
 
 const restaurants = [
   { name: "Foodworld", img: "https://source.unsplash.com/400x300?food" },
-  { name: "Pizza Hub", img: "https://source.unsplash.com/400x300?pizza" },
+  { name: "Pizza Hub",  img: "https://source.unsplash.com/400x300?pizza" },
   { name: "Donuts Hut", img: "https://source.unsplash.com/400x300?donut" },
 ];
 
 export default function FeaturedRestaurants() {
-
   const settings = {
-  dots: true,        // ✅ added
-  infinite: true,    // ✅ added
-  slidesToShow: 3,
-  slidesToScroll: 1, // ✅ added
-  autoplay: true,
-  responsive: [
-    { breakpoint: 900, settings: { slidesToShow: 2 } },
-    { breakpoint: 600, settings: { slidesToShow: 1 } }
-  ]
-};
+    dots: true,
+    infinite: true,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    responsive: [
+      { breakpoint: 900, settings: { slidesToShow: 2 } },
+      { breakpoint: 600, settings: { slidesToShow: 1 } }
+    ]
+  };
 
   return (
     <>
       <h2 style={{ marginLeft: "40px" }}>Featured Restaurants</h2>
-
       <Slider {...settings}>
         {restaurants.map((r, i) => (
           <Card key={i} sx={{ mx: 1 }}>
@@ -39,5 +37,3 @@ export default function FeaturedRestaurants() {
     </>
   );
 }
-
-
