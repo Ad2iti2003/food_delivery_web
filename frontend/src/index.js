@@ -5,6 +5,7 @@ import App from './App';
 import { CartProvider } from "./Context/CartContext"; // ✅ add
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>

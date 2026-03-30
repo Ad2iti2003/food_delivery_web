@@ -15,8 +15,8 @@ const orderSchema = new mongoose.Schema({
       image:    { type: String }
     }
   ],
-  totalPrice:     { type: Number, required: true },
-  status:         {
+  totalPrice:      { type: Number, required: true },
+  status:          {
     type: String,
     enum: ["Pending", "Preparing", "Out for Delivery", "Delivered", "Cancelled"],
     default: "Pending"
@@ -26,7 +26,15 @@ const orderSchema = new mongoose.Schema({
     type: String,
     enum: ["Cash on Delivery", "Online"],
     default: "Cash on Delivery"
-  }
+  },
+  // ✅ new payment fields
+  paymentStatus:   {
+    type: String,
+    enum: ["Pending", "Paid", "Failed"],
+    default: "Pending"
+  },
+  paymentId:       { type: String, default: "" },
+  razorpayOrderId: { type: String, default: "" }
 }, { timestamps: true });
 
 module.exports = mongoose.model("Order", orderSchema);

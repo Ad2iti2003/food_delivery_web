@@ -15,6 +15,8 @@ import Payments from "./profile/Payments";
 import AccountDetails from "./profile/AccountDetails";
 
 function Profile() {
+  const [userName, setUserName] = useState("Guest User");
+  const [userEmail, setUserEmail] = useState("");
   const menuItems = [
     { text: "My Addresses", key: "addresses", icon: <LocationOnOutlinedIcon /> },
     { text: "My Orders",    key: "orders",    icon: <ShoppingBagOutlinedIcon /> },
@@ -23,33 +25,62 @@ function Profile() {
     { text: "Logout",       key: "logout",    icon: <LogoutOutlinedIcon /> }
   ];
 
-  const [selectedSection, setSelectedSection] = useState("addresses");
-  const [isEditingAccount, setIsEditingAccount] = useState(false);
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState("");
-  const [addresses, setAddresses] = useState([]);
-  const [accountData, setAccountData] = useState({
+  const [selectedSection,   setSelectedSection]   = useState("addresses");
+  const [isEditingAccount,  setIsEditingAccount]  = useState(false);
+  const [isEditingAddress,  setIsEditingAddress]  = useState(false);
+  const [newAddress,        setNewAddress]        = useState("");
+  const [addresses,         setAddresses]         = useState([]);
+  const [accountData,       setAccountData]       = useState({
     name: "", email: "", phone: "", address: ""
   });
 
-  // ✅ Load user from localStorage ONCE on mount
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user"));
-    if (storedUser) {
+
+  // ✅ Load user from localStorage once on mount
+ // Fetch latest user profile from MongoDB
+useEffect(() => {
+
+  const fetchUserProfile = async () => {
+
+    try {
+
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser?._id) return;
+
+      const res = await fetch(
+        `http://localhost:5000/api/user/${storedUser._id}`
+      );
+
+      const data = await res.json();
+
+      // update sidebar info
+      setUserName(data.name || "Guest User");
+      setUserEmail(data.email || "");
+
+      // update account section
       setAccountData({
-        name:    storedUser.name    || "",
-        email:   storedUser.email   || "",
-        phone:   storedUser.phone   || "",
-        address: storedUser.address || ""
+        name: data.name || "",
+        email: data.email || "",
+        phone: data.phone || "",
+        address: data.address || ""
       });
-      setAddresses(storedUser.addresses || []);
+
+      // update addresses section
+      setAddresses(data.addresses || []);
+
+      // update localStorage
+      localStorage.setItem("user", JSON.stringify(data));
+
+    } catch (error) {
+      console.error("Failed to fetch user profile:", error);
     }
-  }, []);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-  const userName = user?.name || "Guest User";
+  };
 
-  // ✅ Logout handler — separate, no setState
+  fetchUserProfile();
+
+}, []);
+
+  // ✅ Logout handler
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -57,7 +88,7 @@ function Profile() {
     window.location.href = "/login";
   };
 
-  // ✅ Menu click — logout goes to handler, others set section
+  // ✅ Menu click handler
   const handleMenuClick = (key) => {
     if (key === "logout") {
       handleLogout();
@@ -82,13 +113,23 @@ function Profile() {
   const handleSaveAccount = async () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      const res = await fetch(`http://localhost:5000/api/user/update/${storedUser._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(accountData)
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/user/update/${storedUser._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(accountData)
+        }
+      );
       const data = await res.json();
-      localStorage.setItem("user", JSON.stringify(data));
+
+      // ✅ merge with existing localStorage user
+      const updatedUser = { ...storedUser, ...data };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      // ✅ update state with new data
+      setUserName(data.name   || "Guest User");
+      setUserEmail(data.email || "");
       setAccountData({
         name:    data.name    || "",
         email:   data.email   || "",
@@ -99,19 +140,24 @@ function Profile() {
       alert("Profile updated successfully!");
     } catch (error) {
       console.error(error);
+      alert("Failed to update profile.");
     }
   };
 
   const handleSaveAddresses = async () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      const res = await fetch(`http://localhost:5000/api/user/update/${storedUser._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addresses })
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/user/update/${storedUser._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ addresses })
+        }
+      );
       const data = await res.json();
-      localStorage.setItem("user", JSON.stringify(data));
+      const updatedUser = { ...storedUser, ...data };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
       setAddresses(data.addresses || []);
       setIsEditingAddress(false);
       alert("Addresses updated successfully!");
@@ -124,18 +170,24 @@ function Profile() {
     if (!newAddress.trim()) return;
     const addressObj = {
       fullAddress: newAddress,
-      isPrimary: addresses.length === 0
+      isPrimary:   addresses.length === 0
     };
     const updatedAddresses = [...addresses, addressObj];
     setAddresses(updatedAddresses);
     setNewAddress("");
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
-      await fetch(`http://localhost:5000/api/user/update/${storedUser._id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ addresses: updatedAddresses })
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/user/update/${storedUser._id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ addresses: updatedAddresses })
+        }
+      );
+      const data = await res.json();
+      const updatedUser = { ...storedUser, ...data };
+      localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch (error) {
       console.error(error);
     }
@@ -168,27 +220,37 @@ function Profile() {
   return (
     <Box sx={{
       minHeight: "100vh", backgroundColor: "#f5f5f5",
-      display: "flex", justifyContent: "center", alignItems: "center", p: 3
+      display: "flex", justifyContent: "center",
+      alignItems: "center", p: 3
     }}>
       <Paper elevation={2} sx={{
         width: "100%", maxWidth: 1000,
         display: "flex", minHeight: 520, borderRadius: 2
       }}>
         {/* Sidebar */}
-        <Box sx={{ width: 260, borderRight: "1px solid #e0e0e0", backgroundColor: "#fafafa" }}>
+        <Box sx={{
+          width: 260, borderRight: "1px solid #e0e0e0",
+          backgroundColor: "#fafafa"
+        }}>
           <Box sx={{ p: 2, borderBottom: "1px solid #e0e0e0" }}>
-            <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>{userName}</Typography>
-            <Typography variant="body2" sx={{ color: "#666" }}>{user?.email}</Typography>
+            {/* ✅ using state variables, no duplicate */}
+            <Typography variant="h6" sx={{ mb: 0.5, fontWeight: 600 }}>
+              {userName}
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#666" }}>
+              {userEmail}
+            </Typography>
           </Box>
 
           <List disablePadding>
             {menuItems.map((item, index) => (
               <React.Fragment key={index}>
                 <ListItemButton
-                  onClick={() => handleMenuClick(item.key)} 
+                  onClick={() => handleMenuClick(item.key)}
                   sx={{
                     py: 1.6, px: 2,
-                    backgroundColor: selectedSection === item.key ? "#eeeeee" : "transparent",
+                    backgroundColor:
+                      selectedSection === item.key ? "#eeeeee" : "transparent",
                     "&:hover": { backgroundColor: "#f0f0f0" }
                   }}
                 >

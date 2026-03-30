@@ -32,7 +32,7 @@ export default function Footer() {
             ))}
           </Grid>
 
-          {/* Contact */}
+       {/* Contact 
           <Grid item xs={6} md={3}>
             <Typography fontWeight={700} mb={3}>Contact</Typography>
             {[
@@ -49,7 +49,7 @@ export default function Footer() {
               </Box>
             ))}
           </Grid>
-
+*/}
           {/* Newsletter */}
           <Grid item xs={12} md={3}>
             <Typography fontWeight={700} mb={3}>Follow Us</Typography>

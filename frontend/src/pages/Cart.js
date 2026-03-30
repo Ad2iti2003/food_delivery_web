@@ -17,20 +17,61 @@ export default function Cart() {
     decreaseQty, totalPrice, clearCart
   } = useCart();
 
-  const navigate = useNavigate();
-  const [address, setAddress] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("Cash on Delivery");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const navigate  = useNavigate();
+  const [address, setAddress]               = useState("");
+  const [paymentMethod, setPaymentMethod]   = useState("Cash on Delivery");
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState("");
+  const [success, setSuccess]               = useState("");
 
-  const handlePlaceOrder = async () => {
+  const token   = localStorage.getItem("token");
+  const headers = { Authorization: `Bearer ${token}` };
+
+  // ✅ Place order in DB first, then handle payment
+  const createOrder = async () => {
+    const orderItems = cart.map((item) => ({
+      menuItem: item._id,
+      name:     item.name,
+      price:    item.price,
+      quantity: item.quantity,
+      image:    item.image
+    }));
+
+    const res = await axios.post(
+      "http://localhost:5000/api/orders",
+      {
+        items:           orderItems,
+        totalPrice,
+        deliveryAddress: address,
+        paymentMethod
+      },
+      { headers }
+    );
+    return res.data;
+  };
+
+  // ✅ Handle Cash on Delivery
+  const handleCOD = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      await createOrder();
+      setSuccess("🎉 Order placed successfully!");
+      clearCart();
+      setTimeout(() => navigate("/my-orders"), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to place order.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Handle Razorpay Online Payment
+  const handleOnlinePayment = async () => {
     if (!address.trim()) {
       setError("Please enter a delivery address.");
       return;
     }
-
-    const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
@@ -40,35 +81,79 @@ export default function Cart() {
       setLoading(true);
       setError("");
 
-      const orderItems = cart.map((item) => ({
-        menuItem: item._id,
-        name:     item.name,
-        price:    item.price,
-        quantity: item.quantity,
-        image:    item.image
-      }));
+      // Step 1 — Create order in our DB
+      const savedOrder = await createOrder();
 
-      await axios.post(
-        "http://localhost:5000/api/orders",
-        {
-          items: orderItems,
-          totalPrice,
-          deliveryAddress: address,
-          paymentMethod
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+      // Step 2 — Create Razorpay payment order
+      const { data: razorpayOrder } = await axios.post(
+        "http://localhost:5000/api/payment/create-order",
+        { amount: totalPrice },
+        { headers }
       );
 
-      setSuccess("🎉 Order placed successfully!");
-      clearCart();
+      // Step 3 — Open Razorpay checkout
+      const user = JSON.parse(localStorage.getItem("user"));
 
-      setTimeout(() => navigate("/my-orders"), 2000);
+      const options = {
+        key:      process.env.REACT_APP_RAZORPAY_KEY_ID,
+        amount:   razorpayOrder.amount,
+        currency: "INR",
+        name:     "FoodWagon",
+        description: "Food Order Payment",
+        order_id: razorpayOrder.id,
+        handler: async (response) => {
+          try {
+            // Step 4 — Verify payment
+            await axios.post(
+              "http://localhost:5000/api/payment/verify",
+              {
+                razorpay_order_id:   response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature:  response.razorpay_signature,
+                orderId:             savedOrder._id
+              },
+              { headers }
+            );
 
-   } catch (err) {
-  // ✅ shows actual backend error instead of generic message
-  setError(err.response?.data?.message || err.message || "Failed to place order.");
-} finally {
+            setSuccess("🎉 Payment successful! Order placed.");
+            clearCart();
+            setTimeout(() => navigate("/my-orders"), 2000);
+          } catch {
+            setError("Payment verification failed.");
+          }
+        },
+        prefill: {
+          name:  user?.name  || "",
+          email: user?.email || "",
+        },
+        theme: { color: "#FF8C00" }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", () => {
+        setError("Payment failed. Please try again.");
+      });
+      rzp.open();
+
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to initiate payment.");
+    } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ Main handler
+  const handlePlaceOrder = async () => {
+    if (!address.trim()) {
+      setError("Please enter a delivery address.");
+      return;
+    }
+    if (!token) { navigate("/login"); return; }
+
+    if (paymentMethod === "Cash on Delivery") {
+      await handleCOD();
+    } else {
+      await handleOnlinePayment();
     }
   };
 
@@ -80,7 +165,8 @@ export default function Cart() {
         justifyContent: "center", gap: 2
       }}>
         <Typography variant="h5">🛒 Your cart is empty</Typography>
-        <Button variant="contained" color="warning" onClick={() => navigate("/")}>
+        <Button variant="contained" color="warning"
+          onClick={() => navigate("/")}>
           Browse Menu
         </Button>
       </Box>
@@ -89,7 +175,9 @@ export default function Cart() {
 
   return (
     <Box sx={{ maxWidth: 900, mx: "auto", p: 4 }}>
-      <Typography variant="h4" fontWeight="bold" mb={3}>🛒 Your Cart</Typography>
+      <Typography variant="h4" fontWeight="bold" mb={3}>
+        🛒 Your Cart
+      </Typography>
 
       {error   && <Alert severity="error"   sx={{ mb: 2 }}>{error}</Alert>}
       {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
@@ -103,17 +191,13 @@ export default function Cart() {
                 display: "flex", alignItems: "center",
                 justifyContent: "space-between", p: 2
               }}>
-                <Box
-                  component="img"
-                  src={
-                    item.image
-                      ? `http://localhost:5000${item.image}`
-                      : "https://source.unsplash.com/80x80?food"
-                  }
+                <Box component="img"
+                  src={item.image
+                    ? `http://localhost:5000${item.image}`
+                    : "https://img.icons8.com/color/96/food.png"}
                   alt={item.name}
                   sx={{ width: 70, height: 70, borderRadius: 2, objectFit: "cover" }}
                 />
-
                 <Box sx={{ flex: 1, mx: 2 }}>
                   <Typography fontWeight="bold">{item.name}</Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -123,13 +207,13 @@ export default function Cart() {
                     ₹{item.price}
                   </Typography>
                 </Box>
-
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <IconButton size="small" onClick={() => decreaseQty(item._id)}
                     sx={{ border: "1px solid #ddd" }}>
                     <RemoveIcon fontSize="small" />
                   </IconButton>
-                  <Typography fontWeight="bold" sx={{ minWidth: 24, textAlign: "center" }}>
+                  <Typography fontWeight="bold"
+                    sx={{ minWidth: 24, textAlign: "center" }}>
                     {item.quantity}
                   </Typography>
                   <IconButton size="small" onClick={() => increaseQty(item._id)}
@@ -137,9 +221,10 @@ export default function Cart() {
                     <AddIcon fontSize="small" />
                   </IconButton>
                 </Box>
-
                 <Box sx={{ ml: 2, textAlign: "right" }}>
-                  <Typography fontWeight="bold">₹{item.price * item.quantity}</Typography>
+                  <Typography fontWeight="bold">
+                    ₹{item.price * item.quantity}
+                  </Typography>
                   <IconButton color="error" size="small"
                     onClick={() => removeFromCart(item._id)}>
                     <DeleteIcon fontSize="small" />
@@ -156,7 +241,6 @@ export default function Cart() {
         {/* Delivery + Payment */}
         <Paper elevation={2} sx={{ flex: 1, minWidth: 280, p: 3, borderRadius: 2 }}>
           <Typography variant="h6" mb={2}>Delivery Details</Typography>
-
           <TextField
             fullWidth multiline rows={3}
             label="Delivery Address"
@@ -164,7 +248,6 @@ export default function Cart() {
             onChange={(e) => setAddress(e.target.value)}
             sx={{ mb: 3 }}
           />
-
           <FormControl>
             <FormLabel>Payment Method</FormLabel>
             <RadioGroup
@@ -179,7 +262,7 @@ export default function Cart() {
               <FormControlLabel
                 value="Online"
                 control={<Radio color="warning" />}
-                label="Online Payment"
+                label="Online Payment (Razorpay)"
               />
             </RadioGroup>
           </FormControl>
@@ -189,7 +272,6 @@ export default function Cart() {
         <Paper elevation={2} sx={{ width: 300, p: 3, borderRadius: 2 }}>
           <Typography variant="h6" mb={2}>Order Summary</Typography>
           <Divider sx={{ mb: 2 }} />
-
           {cart.map((item) => (
             <Box key={item._id} sx={{
               display: "flex", justifyContent: "space-between", mb: 1
@@ -197,32 +279,33 @@ export default function Cart() {
               <Typography variant="body2">
                 {item.name} × {item.quantity}
               </Typography>
-              <Typography variant="body2">₹{item.price * item.quantity}</Typography>
+              <Typography variant="body2">
+                ₹{item.price * item.quantity}
+              </Typography>
             </Box>
           ))}
-
           <Divider sx={{ my: 2 }} />
-
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
             <Typography>Delivery</Typography>
             <Typography color="green">FREE</Typography>
           </Box>
-
           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
             <Typography variant="h6" fontWeight="bold">Total</Typography>
             <Typography variant="h6" fontWeight="bold" color="orange">
               ₹{totalPrice}
             </Typography>
           </Box>
-
           <Button fullWidth variant="contained" disabled={loading}
             sx={{ backgroundColor: "#ff9800", py: 1.5, fontSize: 16, mb: 1 }}
             onClick={handlePlaceOrder}
           >
-            {loading ? "Placing Order..." : "Place Order"}
+            {loading ? "Processing..." : paymentMethod === "Online"
+              ? "Pay ₹" + totalPrice
+              : "Place Order"
+            }
           </Button>
-
-          <Button fullWidth variant="outlined" color="error" onClick={clearCart}>
+          <Button fullWidth variant="outlined" color="error"
+            onClick={clearCart}>
             Clear Cart
           </Button>
         </Paper>

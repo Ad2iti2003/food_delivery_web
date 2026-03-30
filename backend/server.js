@@ -28,7 +28,8 @@ app.use("/api/restaurant", require("./routes/restaurantRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/recommend", require("./routes/recommendRoutes"));
 app.use("/api/user", require("./routes/userRoutes"));
-app.use("/api/orders", require("./routes/orderRoutes")); // ✅ this line is missing
+app.use("/api/orders", require("./routes/orderRoutes"));
+app.use("/api/payment", require("./routes/paymentRoutes")); 
 
 
 app.use((err, req, res, next) => {

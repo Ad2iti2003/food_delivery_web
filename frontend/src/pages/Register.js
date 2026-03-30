@@ -14,51 +14,100 @@ import {
 import EmailIcon from "@mui/icons-material/Email";
 import LockIcon from "@mui/icons-material/Lock";
 import PersonIcon from "@mui/icons-material/Person";
+import PhoneIcon from "@mui/icons-material/Phone";
+import HomeIcon from "@mui/icons-material/Home";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+
 import axios from "axios";
 
 export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("user");
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    password: "",
+    role: "user"
+  });
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Handle Input Change
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Register User
   const handleRegister = async (e) => {
     e.preventDefault();
+
+    console.log("Form Data:", formData);   // ✅ Debug
+
+    const { name, email, phone, address, password, role } = formData;
+
+    if (!name || !email || !password) {
+      return alert("Please fill all required fields");
+    }
 
     if (password.length < 6) {
       return alert("Password must be at least 6 characters");
     }
 
+    if (phone && !/^[0-9]{10}$/.test(phone)) {
+      return alert("Enter valid 10 digit phone number");
+    }
+
     try {
+
       setLoading(true);
 
-      const res = await axios.post(
+      const response = await axios.post(
         "http://localhost:5000/api/auth/register",
         {
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          address: address.trim(),
           password,
           role
         }
       );
 
+      console.log("Server Response:", response.data); // ✅ Debug
+
       alert("Account created successfully!");
 
-      setName("");
-      setEmail("");
-      setPassword("");
-      setRole("user");
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        address: "",
+        password: "",
+        role: "user"
+      });
 
       navigate("/login");
 
     } catch (err) {
-      alert(err.response?.data?.msg || "Registration failed");
+
+      console.error(err);
+
+      alert(
+        err.response?.data?.message ||
+        err.response?.data?.msg ||
+        "Registration failed"
+      );
+
     } finally {
       setLoading(false);
     }
@@ -74,7 +123,8 @@ export default function Register() {
         background: "linear-gradient(to right, #fff3e0, #ffe0b2)"
       }}
     >
-      <Paper elevation={6} sx={{ padding: 4, width: 380, borderRadius: 3 }}>
+      <Paper elevation={6} sx={{ padding: 4, width: 420, borderRadius: 3 }}>
+
         <Typography variant="h4" align="center" fontWeight="bold">
           Create Account
         </Typography>
@@ -84,13 +134,15 @@ export default function Register() {
         </Typography>
 
         <form onSubmit={handleRegister} autoComplete="off">
+
           {/* Name */}
           <TextField
             fullWidth
             label="Full Name"
+            name="name"
             margin="normal"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            value={formData.name}
+            onChange={handleChange}
             required
             InputProps={{
               startAdornment: (
@@ -106,9 +158,10 @@ export default function Register() {
             fullWidth
             type="email"
             label="Email"
+            name="email"
             margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={formData.email}
+            onChange={handleChange}
             required
             InputProps={{
               startAdornment: (
@@ -119,14 +172,54 @@ export default function Register() {
             }}
           />
 
+          {/* Phone */}
+          <TextField
+            fullWidth
+            label="Phone Number"
+            name="phone"
+            margin="normal"
+            value={formData.phone}
+            onChange={handleChange}
+            inputProps={{ maxLength: 10 }}
+            placeholder="10-digit mobile number"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <PhoneIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+
+          {/* Address */}
+          <TextField
+            fullWidth
+            label="Delivery Address"
+            name="address"
+            margin="normal"
+            value={formData.address}
+            onChange={handleChange}
+            multiline
+            rows={2}
+            placeholder="House no, Street, City, State"
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <HomeIcon />
+                </InputAdornment>
+              )
+            }}
+          />
+
           {/* Password */}
           <TextField
             fullWidth
             label="Password"
-            type={showPassword ? "text" : "password"}
+            name="password"
             margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            type={showPassword ? "text" : "password"}
+            value={formData.password}
+            onChange={handleChange}
             required
             InputProps={{
               startAdornment: (
@@ -138,7 +231,6 @@ export default function Register() {
                 <InputAdornment position="end">
                   <IconButton
                     onClick={() => setShowPassword((prev) => !prev)}
-                    edge="end"
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -152,15 +244,16 @@ export default function Register() {
             select
             fullWidth
             label="Register As"
+            name="role"
             margin="normal"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
+            value={formData.role}
+            onChange={handleChange}
           >
             <MenuItem value="user">User</MenuItem>
-            <MenuItem value="restaurant">Restaurant</MenuItem>
+            <MenuItem value="restaurant">Restaurant Owner</MenuItem>
           </TextField>
 
-          {/* Button */}
+          {/* Submit */}
           <Button
             type="submit"
             variant="contained"
@@ -174,6 +267,7 @@ export default function Register() {
           >
             {loading ? "Registering..." : "Register"}
           </Button>
+
         </form>
 
         <Typography align="center" mt={2}>
@@ -185,6 +279,7 @@ export default function Register() {
             Login
           </span>
         </Typography>
+
       </Paper>
     </Box>
   );
