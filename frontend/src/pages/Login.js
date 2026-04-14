@@ -30,36 +30,29 @@ export default function Login() {
 
 const handleLogin = async (e) => {
   e.preventDefault();
-
   try {
     const res = await axios.post("http://localhost:5000/api/auth/login", {
       email,
       password
     });
 
-    // save token
+    // ✅ save token
     localStorage.setItem("token", res.data.token);
-  
-    localStorage.setItem("user", JSON.stringify(res.data.user)); 
 
-    window.dispatchEvent(new Event("userUpdated")); 
+    // ✅ save complete user object
+    localStorage.setItem("user", JSON.stringify(res.data.user));
+
+    // ✅ notify navbar to update
+    window.dispatchEvent(new Event("userUpdated"));
 
     alert("Login Successful!");
-    console.log(res.data);
-
     setPassword("");
     setEmail("");
 
-
-   const user = res.data.user;
-
-// Navigate based on role 
-
-  navigate(user.role === "restaurant" ? "/restaurant" : "/");
-
-
-
-
+    const user = res.data.user;
+    if (user.role === "admin")      navigate("/admin");
+    else if (user.role === "restaurant") navigate("/restaurant");
+    else navigate("/");
 
   } catch (err) {
     alert(err.response?.data?.msg || "Login failed");

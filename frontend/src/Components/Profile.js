@@ -9,7 +9,7 @@ import PaymentOutlinedIcon from "@mui/icons-material/PaymentOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined";
 
-import MyAddresses from "./profile/MyAddresses";
+import Myaddress from "./profile/MyAddresses";
 import MyOrders from "./profile/MyOrders";
 import Payments from "./profile/Payments";
 import AccountDetails from "./profile/AccountDetails";
@@ -18,18 +18,18 @@ function Profile() {
   const [userName, setUserName] = useState("Guest User");
   const [userEmail, setUserEmail] = useState("");
   const menuItems = [
-    { text: "My Addresses", key: "addresses", icon: <LocationOnOutlinedIcon /> },
+    { text: "My address", key: "address", icon: <LocationOnOutlinedIcon /> },
     { text: "My Orders",    key: "orders",    icon: <ShoppingBagOutlinedIcon /> },
     { text: "Payments",     key: "payments",  icon: <PaymentOutlinedIcon /> },
     { text: "Account",      key: "account",   icon: <LockOutlinedIcon /> },
     { text: "Logout",       key: "logout",    icon: <LogoutOutlinedIcon /> }
   ];
 
-  const [selectedSection,   setSelectedSection]   = useState("addresses");
+  const [selectedSection,   setSelectedSection]   = useState("address");
   const [isEditingAccount,  setIsEditingAccount]  = useState(false);
   const [isEditingAddress,  setIsEditingAddress]  = useState(false);
   const [newAddress,        setNewAddress]        = useState("");
-  const [addresses,         setAddresses]         = useState([]);
+  const [address,         setaddress]         = useState([]);
   const [accountData,       setAccountData]       = useState({
     name: "", email: "", phone: "", address: ""
   });
@@ -38,46 +38,21 @@ function Profile() {
   // ✅ Load user from localStorage once on mount
  // Fetch latest user profile from MongoDB
 useEffect(() => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
 
-  const fetchUserProfile = async () => {
+  if (storedUser) {
+    setUserName(storedUser.name);
+    setUserEmail(storedUser.email);
 
-    try {
+    setAccountData({
+      name: storedUser.name || "",
+      email: storedUser.email || "",
+      phone: storedUser.phone || "",
+      address: storedUser.address || ""
+    });
 
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      if (!storedUser?._id) return;
-
-      const res = await fetch(
-        `http://localhost:5000/api/user/${storedUser._id}`
-      );
-
-      const data = await res.json();
-
-      // update sidebar info
-      setUserName(data.name || "Guest User");
-      setUserEmail(data.email || "");
-
-      // update account section
-      setAccountData({
-        name: data.name || "",
-        email: data.email || "",
-        phone: data.phone || "",
-        address: data.address || ""
-      });
-
-      // update addresses section
-      setAddresses(data.addresses || []);
-
-      // update localStorage
-      localStorage.setItem("user", JSON.stringify(data));
-
-    } catch (error) {
-      console.error("Failed to fetch user profile:", error);
-    }
-
-  };
-
-  fetchUserProfile();
-
+    setaddress(storedUser.address || []);
+  }
 }, []);
 
   // ✅ Logout handler
@@ -103,7 +78,7 @@ useEffect(() => {
   };
 
   const handleAddressChange = (index, field, value) => {
-    setAddresses((prev) => {
+    setaddress((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], [field]: value };
       return updated;
@@ -144,7 +119,7 @@ useEffect(() => {
     }
   };
 
-  const handleSaveAddresses = async () => {
+  const handleSaveaddress = async () => {
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
       const res = await fetch(
@@ -152,15 +127,15 @@ useEffect(() => {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ addresses })
+          body: JSON.stringify({ address })
         }
       );
       const data = await res.json();
       const updatedUser = { ...storedUser, ...data };
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      setAddresses(data.addresses || []);
+      setaddress(data.address || []);
       setIsEditingAddress(false);
-      alert("Addresses updated successfully!");
+      alert("address updated successfully!");
     } catch (error) {
       console.error(error);
     }
@@ -170,10 +145,10 @@ useEffect(() => {
     if (!newAddress.trim()) return;
     const addressObj = {
       fullAddress: newAddress,
-      isPrimary:   addresses.length === 0
+      isPrimary:   address.length === 0
     };
-    const updatedAddresses = [...addresses, addressObj];
-    setAddresses(updatedAddresses);
+    const updatedaddress = [...address, addressObj];
+    setaddress(updatedaddress);
     setNewAddress("");
     try {
       const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -182,7 +157,7 @@ useEffect(() => {
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ addresses: updatedAddresses })
+          body: JSON.stringify({ address: updatedaddress })
         }
       );
       const data = await res.json();
@@ -194,26 +169,26 @@ useEffect(() => {
   };
 
   const deleteAddress = (index) => {
-    const updated = addresses.filter((_, i) => i !== index);
-    setAddresses(updated);
+    const updated = address.filter((_, i) => i !== index);
+    setaddress(updated);
     const storedUser = JSON.parse(localStorage.getItem("user"));
     fetch(`http://localhost:5000/api/user/update/${storedUser._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ addresses: updated })
+      body: JSON.stringify({ address: updated })
     });
   };
 
   const setPrimaryAddress = (index) => {
-    const updated = addresses.map((addr, i) => ({
+    const updated = address.map((addr, i) => ({
       ...addr, isPrimary: i === index
     }));
-    setAddresses(updated);
+    setaddress(updated);
     const storedUser = JSON.parse(localStorage.getItem("user"));
     fetch(`http://localhost:5000/api/user/update/${storedUser._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ addresses: updated })
+      body: JSON.stringify({ address: updated })
     });
   };
 
@@ -270,9 +245,9 @@ useEffect(() => {
 
         {/* Right Panel */}
         <Box sx={{ flex: 1, p: 4 }}>
-          {selectedSection === "addresses" && (
-            <MyAddresses
-              addresses={addresses}
+          {selectedSection === "address" && (
+            <Myaddress
+              address={address}
               newAddress={newAddress}
               setNewAddress={setNewAddress}
               addNewAddress={addNewAddress}
@@ -280,7 +255,7 @@ useEffect(() => {
               isEditingAddress={isEditingAddress}
               setIsEditingAddress={setIsEditingAddress}
               handleAddressChange={handleAddressChange}
-              handleSaveAddresses={handleSaveAddresses}
+              handleSaveaddress={handleSaveaddress}
               setPrimaryAddress={setPrimaryAddress}
             />
           )}

@@ -10,8 +10,8 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 
-function MyAddresses({
-  addresses,
+function Myaddresses({
+  address,
   newAddress,
   setNewAddress,
   addNewAddress,
@@ -19,7 +19,7 @@ function MyAddresses({
   isEditingAddress,
   setIsEditingAddress,
   handleAddressChange,
-  handleSaveAddresses,
+  handleSaveaddress,
   setPrimaryAddress
 }) {
 
@@ -66,7 +66,7 @@ function MyAddresses({
   return (
     <>
       <Typography variant="h6" sx={{ mb: 3 }}>
-        My Addresses
+        My address
       </Typography>
 
       {/* Add Address */}
@@ -106,7 +106,7 @@ function MyAddresses({
         {isEditingAddress && (
           <Button
             variant="outlined"
-            onClick={handleSaveAddresses}
+            onClick={handleSaveaddress}
             sx={{ textTransform: "none", ml: 2 }}
           >
             Save All Changes
@@ -115,12 +115,12 @@ function MyAddresses({
       </Box>
 
       {/* Address List */}
-      {addresses.length === 0 ? (
+      {address.length === 0 ? (
         <Typography sx={{ color: "#777" }}>
-          No addresses added yet.
+          No address added yet.
         </Typography>
       ) : (
-        addresses.map((address, index) => (
+        address.map((address, index) => (
           <Paper key={index} sx={{ p: 2, mb: 2, position: "relative" }}>
             {isEditingAddress ? (
               <TextField
@@ -185,4 +185,4 @@ function MyAddresses({
   );
 }
 
-export default MyAddresses;
+export default Myaddresses;
