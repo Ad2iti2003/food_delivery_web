@@ -22,7 +22,17 @@ const userSchema = new mongoose.Schema(
       isPrimary: { type: Boolean, default: false }
     }
   ]
-},
+,
+paymentMethods: [
+      {
+        type:       { type: String }, // "card" or "upi"
+        last4:      { type: String }, // last 4 digits for card
+        upiId:      { type: String }, // UPI ID
+        cardHolder: { type: String }, // card holder name
+        isPrimary:  { type: Boolean, default: false }
+      }
+    ]
+  },
 { timestamps: true }
 );
 
