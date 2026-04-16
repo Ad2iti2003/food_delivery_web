@@ -51,7 +51,7 @@ useEffect(() => {
       address: storedUser.address || ""
     });
 
-    setaddress(storedUser.address || []);
+    setaddress(Array.isArray(storedUser.address) ? storedUser.address : []);
   }
 }, []);
 
